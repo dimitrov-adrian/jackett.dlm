@@ -6,7 +6,7 @@ Download Station search module for Jackett (https://github.com/Jackett/Jackett)
 
 1. Check - WORKING AND ACCESSIBLE JACKETT INSTANCE
 
-1. Download latest jackett.dlm module
+1. Download latest [jackett.dlm](https://github.com/dimitrov-adrian/jackett.dlm/releases/download/0.0.1/jackett.dlm) module
 
 2. Install and enable to your Download Station -> Settings -> BT Search -> Add
 
