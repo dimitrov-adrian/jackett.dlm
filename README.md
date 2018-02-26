@@ -25,10 +25,15 @@ Tested on Synology DSM 6.1
 (I just have no older version to test)
 
 
-## Build by yourself
+## Building
 
 ```bash
 git clone https://github.com/dimitrov-adrian/jackett.dlm.git
 cd jackett.dlm.git
-tar czf jackett.dlm INFO search.php
+make
+```
+
+## Testing
+```bash
+make tests ARGS="<hostname> <apikey>"
 ````
