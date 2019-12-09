@@ -2,7 +2,7 @@
     "name": "jackett",
     "displayname": "Jackett",
     "description": "Download Station search module Jackett proxy",
-    "version": "0.0.1",
+    "version": "1.0.2",
     "accountsupport": true,
     "site": "https://github.com/dimitrov-adrian/jackett.dlm",
     "module": "search.php",

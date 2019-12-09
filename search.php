@@ -10,23 +10,6 @@ class SynoDLMSearchJackett
   private $qurl = 'http://<host>/api/v2.0/indexers/all/results/torznab/api?apikey=<apikey>&t=search&cat=&q=<query>';
 
   /**
-   * Convert bytes to human size
-   *
-   * @param $bytes
-   *
-   * @return string
-   */
-  function formatBytes($bytes)
-  {
-    $units = [ 'B', 'KB', 'MB', 'GB', 'TB' ];
-    $bytes = max($bytes, 0);
-    $pow = floor(($bytes ? log($bytes) : 0) / log(1024));
-    $pow = min($pow, count($units) - 1);
-    $bytes /= pow(1024, $pow);
-    return round($bytes, 2) . ' ' . $units[$pow];
-  }
-
-  /**
    * synology hook
    *
    * @param $curl
@@ -75,7 +58,7 @@ class SynoDLMSearchJackett
     if (empty($xml->channel)) {
       return $count;
     }
-
+    
     foreach ($xml->channel->item as $child) {
 
       $peers = $child->xpath('torznab:attr[@name="peers"]')
@@ -91,19 +74,23 @@ class SynoDLMSearchJackett
         $categories[] = $category['value'];
       }
 
+      $indexer = (string) $child->jackettindexer;
       $leechs = $peers ? $peers - $seeders : 0;
-      $title = (string) $child->title;
+      $title = urldecode((string) $child->title);
       $download = (string) $child->link;
-      $size = $this->formatBytes( (double) $child->size );
       $size = (double) $child->size;
       $datetime = date('Y-m-d H:i:s', strtotime($child->pubDate));
       $page = (string) $child->guid;
-      $hash = '';
+      $hash = md5($count . $download);
 
       // Add record for every category
       // foreach ($categories as $category) {
       //   $plugin->addResult($title, $download, $size, $datetime, $page, $hash, $seeders, $leechs, $category);
       // }
+
+      if ($indexer) {
+        $title .= ' (' . $indexer . ')';
+      }
 
       $plugin->addResult($title, $download, $size, $datetime, $page, $hash, $seeders, $leechs, array_shift($categories));
 
@@ -142,6 +129,10 @@ class SynoDLMSearchJackett
     $httpcode = curl_getinfo($curl, CURLINFO_HTTP_CODE);
 
     curl_close($curl);
+
+    if (strpos($result, 'Invalid API Key') !== false) {
+      return false;
+    }
 
     // Assume that if HTTP status code is 200, then we have connection to the Jackett
     return (int) $httpcode == 200;
