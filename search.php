@@ -2,12 +2,21 @@
 
 /**
  * Synology search class
+ *
+ * Stored in:   /volumeX/@appconf/DownloadStation/download/userplugins/
+ * Invoker:     /volumeX/@appstore/DownloadStation/btsearch/btsearch.php
  */
 class SynoDLMSearchJackett
 {
 
-  public $debug = FALSE;
+  public $debug = true;
   private $qurl = 'http://<host>/api/v2.0/indexers/all/results/torznab/api?apikey=<apikey>&t=search&cat=&q=<query>';
+  private $categoriesDb = [];
+
+  public function __construct()
+  {
+    $this->categoriesDb = include(__DIR__ . '/categories.php');
+  }
 
   /**
    * synology hook
@@ -37,7 +46,17 @@ class SynoDLMSearchJackett
     }
 
     // Setup the $curl handler.
-    curl_setopt($curl, CURLOPT_URL, $url);
+    curl_setopt_array($curl, [
+      CURLOPT_URL => $url,
+      CURLOPT_RETURNTRANSFER => true,
+      CURLOPT_SSL_VERIFYHOST => false,
+      CURLOPT_SSL_VERIFYPEER => false,
+      CURLOPT_FAILONERROR => true,
+      CURLOPT_TIMEOUT => 30,
+      CURLOPT_FOLLOWLOCATION => true,
+      CURLOPT_USERAGENT => DOWNLOAD_STATION_USER_AGENT,
+      CURLOPT_CUSTOMREQUEST => 'GET',
+    ]);
   }
 
   /**
@@ -58,43 +77,44 @@ class SynoDLMSearchJackett
     if (empty($xml->channel)) {
       return $count;
     }
-    
+
     foreach ($xml->channel->item as $child) {
 
       $peers = $child->xpath('torznab:attr[@name="peers"]')
-        ? (int)$child->xpath('torznab:attr[@name="peers"]')[0]['value']
+        ? (int) $child->xpath('torznab:attr[@name="peers"]')[0]['value']
         : 0;
 
-      $seeders = $child->xpath('torznab:attr[@name="seeders"]')
-        ? (int)$child->xpath('torznab:attr[@name="seeders"]')[0]['value']
+      $seeds = $child->xpath('torznab:attr[@name="seeders"]')
+        ? (int) $child->xpath('torznab:attr[@name="seeders"]')[0]['value']
         : 0;
 
       $categories = [];
       foreach ($child->xpath('torznab:attr[@name="category"]') as $category) {
-        $categories[] = $category['value'];
+        if (!empty($category['value'])) {
+          $categories[] = !isset($this->categoriesDb[(int) $category['value']])
+            ? 'Other'
+            : $this->categoriesDb[(int) $category['value']];
+        }
       }
 
       $indexer = (string) $child->jackettindexer;
-      $leechs = $peers ? $peers - $seeders : 0;
+      $leechs = $peers ? $peers - $seeds : 0;
       $title = urldecode((string) $child->title);
       $download = (string) $child->link;
       $size = (double) $child->size;
       $datetime = date('Y-m-d H:i:s', strtotime($child->pubDate));
       $page = (string) $child->guid;
-      $hash = md5($count . $download);
-
-      // Add record for every category
-      // foreach ($categories as $category) {
-      //   $plugin->addResult($title, $download, $size, $datetime, $page, $hash, $seeders, $leechs, $category);
-      // }
 
       if ($indexer) {
         $title .= ' (' . $indexer . ')';
       }
 
-      $plugin->addResult($title, $download, $size, $datetime, $page, $hash, $seeders, $leechs, array_shift($categories));
-
-      $count++;
+      // Add record for every category
+      foreach ($categories as $category) {
+        $hash = md5($category . $download);
+        $plugin->addResult($title, $download, $size, $datetime, $page, $hash, $seeds, $leechs, $category);
+        $count++;
+      }
     }
 
     return $count;
@@ -114,12 +134,14 @@ class SynoDLMSearchJackett
     // Make new curl object for the verify request.
     $curl = curl_init();
     curl_setopt_array($curl, [
-      CURLOPT_RETURNTRANSFER => TRUE,
-      CURLOPT_SSL_VERIFYHOST => FALSE,
-      CURLOPT_SSL_VERIFYPEER => FALSE,
-      CURLOPT_TIMEOUT => 20,
-      CURLOPT_FOLLOWLOCATION => TRUE,
-      CURLOPT_USERAGENT => 'Mozilla/4.0 (compatible; MSIE 6.1; Windows XP)',
+      CURLOPT_URL => $url,
+      CURLOPT_RETURNTRANSFER => true,
+      CURLOPT_SSL_VERIFYHOST => false,
+      CURLOPT_SSL_VERIFYPEER => false,
+      CURLOPT_FAILONERROR => true,
+      CURLOPT_TIMEOUT => 30,
+      CURLOPT_FOLLOWLOCATION => true,
+      CURLOPT_USERAGENT => DOWNLOAD_STATION_USER_AGENT,
     ]);
 
     // Use the same prepare method.

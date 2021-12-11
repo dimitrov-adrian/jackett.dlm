@@ -5,6 +5,10 @@ if (empty($argv[1]) && empty($argv[2]) && empty($argv[3])) {
   exit;
 }
 
+if (!defined('DOWNLOAD_STATION_USER_AGENT')) {
+    define('DOWNLOAD_STATION_USER_AGENT', 'SynologyTest');
+}
+
 echo "\n";
 
 require __DIR__ . '/../search.php';
@@ -54,24 +58,26 @@ $search->prepare($curl, $argv[3], $argv[1], $argv[2]);
 $result = curl_exec($curl);
 curl_close($curl);
 
-printf("\n %20.20s \t|\t %8.8s \t|\t %16.16s \t|\t %6.6s \t|\t %6.6s \t|\t %10.10s",
+printf("\n%30.30s | %8.8s | %16.16s | %6.6s | %6.6s | %10.10s | %10.10s",
     'Title',
     'Size',
     'Time',
     'Seed',
     'Leech',
-    'Source');
+    'Source',
+    'Category');
 
 $plugin = new FakePlugin();
 $count = $search->parse($plugin, $result);
 foreach ($plugin->results as $result) {
-  printf("\n%20.20s \t|\t %8.8s \t|\t %16.16s \t|\t %6.6s \t|\t %6.6s \t|\t %10.10s",
+  printf("\n%30.30s | %8.8s | %16.16s | %6.6s | %6.6s | %10.10s | %10.10s",
     $result->title,
     formatBytes( $result->size ),
     $result->datetime,
     $result->seeds,
     $result->seeds + $result->leechs,
-    'Jacket');
+    'Jacket',
+    $result->category);
 }
 
 echo "\n\nResults: {$count}";

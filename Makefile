@@ -1,7 +1,7 @@
 default: build
 
 build:
-	@tar -zcf jackett.dlm INFO search.php
+	@tar -zcf jackett.dlm INFO search.php categories.php
 	@echo "Build done. Use jacket.dlm file"
 
 tests:
