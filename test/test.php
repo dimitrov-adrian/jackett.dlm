@@ -47,11 +47,14 @@ if ($search->VerifyAccount($argv[1], $argv[2])) {
 echo "Testing search query for (test):\n";
 $curl = curl_init();
 curl_setopt_array($curl, [
-  CURLOPT_RETURNTRANSFER => TRUE,
-  CURLOPT_SSL_VERIFYHOST => FALSE,
-  CURLOPT_SSL_VERIFYPEER => FALSE,
+  CURLOPT_RETURNTRANSFER => 1,
+  CURLOPT_SSL_VERIFYHOST => 0,
+  CURLOPT_SSL_VERIFYPEER => 0,
   CURLOPT_TIMEOUT => 20,
-  CURLOPT_FOLLOWLOCATION => TRUE,
+  CURLOPT_FOLLOWLOCATION => 1,
+  CURLOPT_HEADER => 0,
+  CURLOPT_FOLLOWLOCATION => 1,
+  CURLOPT_CONNECTTIMEOUT => 600,
   CURLOPT_USERAGENT => 'Mozilla/4.0 (compatible; MSIE 6.1; Windows XP)',
 ]);
 $search->prepare($curl, $argv[3], $argv[1], $argv[2]);

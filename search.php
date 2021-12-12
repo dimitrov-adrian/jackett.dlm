@@ -48,14 +48,10 @@ class SynoDLMSearchJackett
     // Setup the $curl handler.
     curl_setopt_array($curl, [
       CURLOPT_URL => $url,
-      CURLOPT_RETURNTRANSFER => true,
       CURLOPT_SSL_VERIFYHOST => false,
       CURLOPT_SSL_VERIFYPEER => false,
-      CURLOPT_FAILONERROR => true,
+      CURLOPT_CONNECTTIMEOUT => 30,
       CURLOPT_TIMEOUT => 30,
-      CURLOPT_FOLLOWLOCATION => true,
-      CURLOPT_USERAGENT => DOWNLOAD_STATION_USER_AGENT,
-      CURLOPT_CUSTOMREQUEST => 'GET',
     ]);
   }
 
@@ -135,13 +131,11 @@ class SynoDLMSearchJackett
     $curl = curl_init();
     curl_setopt_array($curl, [
       CURLOPT_URL => $url,
-      CURLOPT_RETURNTRANSFER => true,
       CURLOPT_SSL_VERIFYHOST => false,
       CURLOPT_SSL_VERIFYPEER => false,
-      CURLOPT_FAILONERROR => true,
+      CURLOPT_RETURNTRANSFER => 1,
+      CURLOPT_CONNECTTIMEOUT => 30,
       CURLOPT_TIMEOUT => 30,
-      CURLOPT_FOLLOWLOCATION => true,
-      CURLOPT_USERAGENT => DOWNLOAD_STATION_USER_AGENT,
     ]);
 
     // Use the same prepare method.
